@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Customer Order Page</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f8f8f8; }
+    .box { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+    input, select, button { padding: 10px; width: 100%; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <h2>🛒 Place an Order</h2>
+    <input type="text" id="customerName" placeholder="Your Name">
+    <select id="product">
+      <option value="">-- Choose Product --</option>
+      <option value="Burger">Burger - RM10</option>
+      <option value="Pizza">Pizza - RM20</option>
+      <option value="Drink">Drink - RM5</option>
+    </select>
+    <button onclick="placeOrder()">Place Order</button>
+    <p id="orderMsg"></p>
+  </div>
+  
+  <hr />
+
+  <div class="box">
+    <h2>🔍 Track Order</h2>
+    <input type="text" id="trackId" placeholder="Enter Order ID">
+    <button onclick="trackOrder()">Track</button>
+    <div id="trackResult" style="margin-top: 10px;"></div>
+  </div>
+
+  <script>
+    const orders = JSON.parse(localStorage.getItem("orders") || "{}");
+
+    function placeOrder() {
+      const name = document.getElementById("customerName").value.trim();
+      const product = document.getElementById("product").value;
+      const msg = document.getElementById("orderMsg");
+
+      if (!name || !product) {
+        msg.innerHTML = "❌ Please fill in all fields.";
+        return;
+      }
+
+      const orderId = "ORD" + Math.floor(Math.random() * 100000);
+      orders[orderId] = {
+        name,
+        product,
+        status: "Pending",
+        approved: false
+      };
+
+      localStorage.setItem("orders", JSON.stringify(orders));
+      msg.innerHTML = `✅ Order placed! Your Order ID is <strong>${orderId}</strong>`;
+    }
+
+    function trackOrder() {
+      const id = document.getElementById("trackId").value.trim().toUpperCase();
+      const result = document.getElementById("trackResult");
+
+      const orders = JSON.parse(localStorage.getItem("orders") || "{}");
+
+      if (orders[id]) {
+        const o = orders[id];
+        result.innerHTML = `
+          <p><strong>Name:</strong> ${o.name}</p>
+          <p><strong>Product:</strong> ${o.product}</p>
+          <p><strong>Status:</strong> ${o.status}</p>
+          <p><strong>Approved:</strong> ${o.approved ? "✅ Yes" : "❌ No"}</p>
+        `;
+      } else {
+        result.innerHTML = "❌ Order not found.";
+      }
+    }
+  </script>
+
+  <p><a href="staff.html">Staff Login Here</a></p>
+</body>
+</html>

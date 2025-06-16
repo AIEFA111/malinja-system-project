@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Staff Panel</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #eef; }
+    .box { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+    input, select, button { padding: 10px; width: 100%; margin-top: 10px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- STAFF REGISTER -->
+  <div class="box">
+    <h2>📝 Staff Register</h2>
+    <input type="text" id="newUser" placeholder="New Username">
+    <input type="password" id="newPass" placeholder="New Password">
+    <button onclick="registerStaff()">Register</button>
+    <p id="registerMsg"></p>
+  </div>
+
+  <!-- STAFF LOGIN -->
+  <div class="box" id="loginBox">
+    <h2>🔐 Staff Login</h2>
+    <input type="text" id="staffUser" placeholder="Username">
+    <input type="password" id="staffPass" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="loginMsg" style="color:red;"></p>
+  </div>
+
+  <!-- STAFF PANEL -->
+  <div class="box hidden" id="staffPanel">
+    <h2>📋 All Orders</h2>
+    <select id="orderSelect" onchange="loadOrder()"></select>
+    <p id="orderInfo"></p>
+
+    <h3>Update Status</h3>
+    <select id="newStatus">
+      <option value="Pending">Pending</option>
+      <option value="Processing">Processing</option>
+      <option value="Shipped">Shipped</option>
+      <option value="Delivered">Delivered</option>
+    </select>
+
+    <h3>Approval</h3>
+    <select id="approval">
+      <option value="true">Approve</option>
+      <option value="false">Reject</option>
+    </select>
+
+    <button onclick="updateOrder()">Update Order</button>
+    <p id="staffMsg"></p>
+  </div>
+
+  <script>
+    const orders = JSON.parse(localStorage.getItem("orders") || "{}");
+    let currentOrderId = "";
+
+    // Staff Register
+    function registerStaff() {
+      const username = document.getElementById("newUser").value.trim();
+      const password = document.getElementById("newPass").value;
+
+      const accounts = JSON.parse(localStorage.getItem("staffAccounts") || "{}");
+
+      if (!username || !password) {
+        document.getElementById("registerMsg").innerText = "❌ Please fill all fields.";
+        return;
+      }
+
+      if (accounts[username]) {
+        document.getElementById("registerMsg").innerText = "❌ Username already exists.";
+        return;
+      }
+
+      accounts[username] = password;
+      localStorage.setItem("staffAccounts", JSON.stringify(accounts));
+      document.getElementById("registerMsg").innerText = "✅ Registered successfully!";
+    }
+
+    // Staff Login
+    function login() {
+      const username = document.getElementById("staffUser").value.trim();
+      const password = document.getElementById("staffPass").value;
+
+      const accounts = JSON.parse(localStorage.getItem("staffAccounts") || "{}");
+
+      if (accounts[username] && accounts[username] === password) {
+        document.getElementById("loginBox").classList.add("hidden");
+        document.getElementById("staffPanel").classList.remove("hidden");
+        loadOrderList();
+      } else {
+        document.getElementById("loginMsg").innerText = "❌ Incorrect login.";
+      }
+    }
+
+    // Load all orders in dropdown
+    function loadOrderList() {
+      const dropdown = document.getElementById("orderSelect");
+      dropdown.innerHTML = '<option value="">-- Select Order --</option>';
+      for (const id in orders) {
+        const o = orders[id];
+        dropdown.innerHTML += `<option value="${id}">${id} - ${o.name}</option>`;
+      }
+    }
+
+    // Show selected order info
+    function loadOrder() {
+      const id = document.getElementById("orderSelect").value;
+      const info = document.getElementById("orderInfo");
+      currentOrderId = id;
+      if (id && orders[id]) {
+        const o = orders[id];
+        info.innerHTML = `
+          <p><strong>Name:</strong> ${o.name}</p>
+          <p><strong>Product:</strong> ${o.product}</p>
+          <p><strong>Status:</strong> ${o.status}</p>
+          <p><strong>Approved:</strong> ${o.approved ? "Yes" : "No"}</p>
+        `;
+        document.getElementById("newStatus").value = o.status;
+        document.getElementById("approval").value = o.approved;
+      } else {
+        info.innerHTML = "";
+      }
+    }
+
+    // Update order
+    function updateOrder() {
+      const status = document.getElementById("newStatus").value;
+      const approved = document.getElementById("approval").value === "true";
+      const msg = document.getElementById("staffMsg");
+
+      if (!currentOrderId || !orders[currentOrderId]) {
+        msg.innerText = "❌ Invalid order.";
+        return;
+      }
+
+      orders[currentOrderId].status = status;
+      orders[currentOrderId].approved = approved;
+      localStorage.setItem("orders", JSON.stringify(orders));
+      msg.innerText = `✅ Order ${currentOrderId} updated.`;
+      loadOrder(); // refresh info
+    }
+  </script>
+
+</body>
+</html>
